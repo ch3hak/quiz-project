@@ -47,7 +47,7 @@ const CreateQuiz = () => {
       );
 
       alert(`Quiz created! Code = ${quizCode}`);
-      navigate(`/quiz/${quizRef.id}`);
+      navigate(`/quiz/${quizCode}`);
     } 
     catch(err) {
       console.error(err);

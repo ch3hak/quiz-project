@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from "react";
+import { auth, timestamp} from "../utils/firebase";
+import { setDoc, doc } from "firebase/firestore";
 import { useParams } from "react-router-dom";
 import {
   collection,
@@ -12,6 +14,7 @@ import ScoreCard from "./ScoreCard";
 const QuizPage = () => {
   const { code } = useParams();
   const [quizMeta,  setQuizMeta]  = useState(null);
+  const [quizId, setQuizId] = useState("");
   const [questions,setQuestions]  = useState([]);
   const [answers,  setAnswers]    = useState({});
   const [loading,  setLoading]    = useState(true);
@@ -30,6 +33,7 @@ const QuizPage = () => {
         }
         const quizDoc = snap.docs[0];
         setQuizMeta(quizDoc.data());
+        setQuizId(quizDoc.id);
 
         const qsSnap = await getDocs(
           collection(db, "quizzes", quizDoc.id, "questions")
@@ -55,12 +59,29 @@ const QuizPage = () => {
   const pickAnswer = (qIdx, optIdx) =>
     setAnswers(a => ({ ...a, [qIdx]: optIdx }));
 
-  const submitQuiz = () => {
+  const submitQuiz = async () => {
     let s = 0;
     questions.forEach((q, idx) => {
       if (answers[idx] === q.correctOption) s++;
     });
     setScore(s);
+
+    if (auth.currentUser && quizId) {
+      const responseRef = doc(
+        db,
+        "quizzes",
+        quizId,
+        "responses",
+        auth.currentUser.uid      
+      );
+      
+      await setDoc(responseRef, {
+        answers,                  
+        score:    s,
+        takenAt:  timestamp(),
+        user: auth.currentUser.displayName || auth.currentUser.email || "Anonymous",
+      });
+    }
   };
 
   const allAnswered =
@@ -73,7 +94,7 @@ const QuizPage = () => {
   return (
     <div style={{ maxWidth: 600, margin: "2em auto", padding: "1em" }}>
       <h1 style={{ borderBottom: "1px solid #ddd", paddingBottom: "0.5em" }}>
-        {quizMeta.title}
+        {quizMeta.title || "Untitled"}
       </h1>
 
       {questions.map((q, idx) => (
