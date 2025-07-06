@@ -2,8 +2,9 @@ import React from 'react';
 import { useState } from 'react';
 
 const QuestionForm = ({onSave}) => {
-    const [question, setQuestion] = useState([]);
+    const [question, setQuestion] = useState("");
     const [options, setOptions] = useState(["", "", "", ""]); 
+    const [correct,  setCorrect]  = useState(0);
 
     const handleOptionChange = (index, value) => {
         const updatedOptions = [...options];
@@ -20,7 +21,7 @@ const QuestionForm = ({onSave}) => {
             alert("Please fill out all options.");
             return;
         }
-        onSave({question, options});    };
+        onSave({question, options, correct});    };
     return (
         <div>
             <input 
@@ -30,13 +31,23 @@ const QuestionForm = ({onSave}) => {
             onChange={(e) => setQuestion(e.target.value)}
         />
         {options.map((opt, index) => (
-            <input
-                key={index}
-                type="text"
-                placeholder={`Option ${index + 1}`}
-                value={opt}
-                onChange={(e) => handleOptionChange(index, e.target.value)}
-            />
+            <div key={index} style={{ display: 'flex', alignItems: 'center', margin: '0.25em 0' }}>
+                <input
+                    type="radio"
+                    name="correctOption"
+                    checked={correct === index}
+                    onChange={() => setCorrect(index)}
+                    style={{ marginRight: '0.5em' }}
+                />
+
+                <input
+                    key={index}
+                    type="text"
+                    placeholder={`Option ${index + 1}`}
+                    value={opt}
+                    onChange={(e) => handleOptionChange(index, e.target.value)}
+                />
+            </div>
         ))}
         <button onClick={handleSave}>Save Question</button>
         </div>

@@ -24,7 +24,6 @@ const Login = () => {
     if(message) return;
 
     if(!isSignInForm) {
-      // sign up
       createUserWithEmailAndPassword(
         auth, 
         email.current.value, 
@@ -32,7 +31,6 @@ const Login = () => {
       )
 
       .then((userCredential) => {
-        // Signed up 
         const user = userCredential.user;
         updateProfile(user, {
           displayName: name.current.value, 
@@ -65,10 +63,8 @@ const Login = () => {
     }
 
     else{
-      //sign in
       signInWithEmailAndPassword(auth, email.current.value, password.current.value)
       .then((userCredential) => {
-        // Signed in 
         const user = userCredential.user;
         navigate("/home")
       })
@@ -92,7 +88,7 @@ const Login = () => {
         <h1>
           {isSignInForm ? "Sign In" : "Sign Up"}
         </h1>
-        {!isSignInForm && (<input type="text" placeholder="Name"/>)}
+        {!isSignInForm && (<input ref={name} type="text" placeholder="Name"/>)}
         <input 
           ref={email}
           type="text" 
