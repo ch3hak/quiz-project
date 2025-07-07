@@ -1,60 +1,62 @@
-import { createBrowserRouter, RouterProvider } from "react-router-dom";
+import { createBrowserRouter, RouterProvider, Navigate, Outlet } from "react-router-dom";
 import Login from "./Login";
 import CreateQuiz from "./CreateQuiz";
 import JoinQuiz from "./JoinQuiz";
 import QuizPage from "./QuizPage";
 import Home from "./Home";
-import { useEffect } from "react";
-import { useDispatch } from "react-redux";
+import ResponsesPage from './ResponsesPage';
+import React, { useEffect } from "react";
+import { useDispatch, useSelector } from "react-redux";
 import { addUser, removeUser } from "../utils/userSlice";
 import { auth } from "../utils/firebase";
 import { onAuthStateChanged } from "firebase/auth";
 
 
+const RequireUnauth = () => {
+    const user = useSelector(state => state.user);
+    return user ? <Navigate to="/home" replace /> : <Outlet />;
+};
+
+const RequireAuth = () => {
+    const user = useSelector(state => state.user);
+    return user ? <Outlet /> : <Navigate to="/" replace />;
+};
+
 const Body = () => {
     const dispatch = useDispatch();
 
+    useEffect(() => {
+        const unsubscribe = onAuthStateChanged(auth, (user) => {
+          if (user) {
+            const { uid, email, displayName, photoURL } = user;
+            dispatch(addUser({ uid, email, displayName, photoURL }));
+          } else {
+            dispatch(removeUser());
+          }
+        });
+        return unsubscribe;
+    }, [dispatch]);
+    
+
     const appRouter = createBrowserRouter([
         {
-            path: "/",
-            element: <Login />
+          element: <RequireUnauth />,
+          children: [
+            { path: "/", element: <Login /> },
+          ]
         },
         {
-            path: "/create-quiz",
-            element: <CreateQuiz />
+          element: <RequireAuth />,
+          children: [
+            { path: "/home",        element: <Home /> },
+            { path: "/create-quiz", element: <CreateQuiz /> },
+            { path: "/join-quiz",   element: <JoinQuiz /> },
+            { path: "/quiz/:code",  element: <QuizPage /> },
+            { path: "/quiz/:code/responses", element: <ResponsesPage /> }
+          ]
         },
-        {
-            path: "/join-quiz",
-            element: <JoinQuiz />
-        },
-        {
-            path: "/quiz/:code",
-            element: <QuizPage />
-        },
-        {
-            path: "/home",
-            element: <Home />
-        }
-
+        { path: "*", element: <Navigate to="/" replace /> },
     ]);
-
-    useEffect(() => {
-        onAuthStateChanged(auth, (user) => {
-            if (user) {
-                const {uid, email, displayName, photoURL} = user;
-                dispatch(
-                    addUser({
-                        uid: uid, 
-                        email: email, 
-                        displayName: displayName, 
-                        photoURL: photoURL,
-                    })
-                );
-            } else {
-                dispatch(removeUser());
-            }
-          });
-    }, [])
 
     return (
         <div>

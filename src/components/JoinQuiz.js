@@ -8,16 +8,25 @@ const JoinQuiz = () => {
   return (
     <div>JoinQuiz
       <p onClick={ () => navigate("/create-quiz")}>Create a quiz instead.</p>
-
-      <form>
+      <div>
         <input
-          type="text"
+        type="text"
           placeholder="Enter Quiz Code"
           value={quizCode}
-          onChange={(e) => setQuizCode(e.target.value)}
+          onChange={e => setQuizCode(e.target.value)}
         />
-        <button onClick={ () => navigate(`/quiz/${quizCode}`)}>Join</button>
-      </form>
+    
+        <button
+          type="button"
+          onClick={() => {
+            if (!quizCode.trim()) return alert("Enter a quiz code");
+            navigate(`/quiz/${quizCode.trim()}`);
+          }}
+        >
+          Join
+        </button>
+  </div>
+      
     </div>
   )
 }

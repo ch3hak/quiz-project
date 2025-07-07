@@ -29,7 +29,8 @@ const CreateQuiz = () => {
       const quizData = {
         title,
         quizCode,
-        createdBy: auth.currentUser?.displayName || auth.currentUser?.uid || 'anonymous',
+        createdBy: auth.currentUser.uid,
+        createdName: auth.currentUser.displayName,
         createdAt: timestamp(),
       };
       const quizRef = await addDoc(collection(db, 'quizzes'), quizData);
