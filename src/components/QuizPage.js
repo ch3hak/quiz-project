@@ -11,7 +11,6 @@ import {
   updateDoc,
   deleteDoc
 } from "firebase/firestore";
-import ScoreCard from "./ScoreCard";
 
 const QuizPage = () => {
   const { code } = useParams();
@@ -22,7 +21,6 @@ const QuizPage = () => {
   const [answers,  setAnswers]    = useState({});
   const [loading,  setLoading]    = useState(true);
   const [error,    setError]      = useState("");
-  const [score,    setScore]      = useState(null);
   const [editMode,      setEditMode]      = useState(false);
   const [titleEdit,     setTitleEdit]     = useState("");
   const [questionsEdit, setQuestionsEdit] = useState([]);
@@ -106,26 +104,24 @@ const QuizPage = () => {
     questions.forEach((q, idx) => {
       if (answers[idx] === q.correctOption) s++;
     });
-    setScore(s);
-
     if (auth.currentUser && quizId) {
-      const responseRef = doc(
-        db,
-        "quizzes",
-        quizId,
-        "responses",
-        auth.currentUser.uid      
+      await setDoc(
+        doc(db, "quizzes", quizId, "responses", auth.currentUser.uid),
+          {
+            uid: auth.currentUser.uid,
+            answers,
+            score:    s,
+            takenAt:  timestamp(),
+            user:     auth.currentUser.displayName || auth.currentUser.email,
+          }
       );
-      
-      await setDoc(responseRef, {
-        answers,                  
-        score:    s,
-        takenAt:  timestamp(),
-        user: auth.currentUser.displayName || auth.currentUser.email,
-      });
     }
+    
+        navigate(`/quiz/${code}/score`, {
+          state: { score: s, total: questions.length }
+        });
   };
-
+  
   if (loading) return <p>Loading quiz…</p>;
   if (error) return <p style={{ color: "red" }}>{error}</p>;
 
@@ -227,10 +223,6 @@ const QuizPage = () => {
           >
             Submit Answers
           </button>
-
-          {score !== null && (
-            <ScoreCard scored={score} total={questions.length} />
-          )}
         </>
       )}
     </div>

@@ -51,14 +51,12 @@ const Login = () => {
         .catch((error) => {
           setErrorMessage(error.message);
         });
-        navigate("/home")
       })
   
       .catch((error) => {
         const errorCode = error.code;
         const errorMessage = error.message;
         setErrorMessage(errorCode + "-" + errorMessage);
-        // ..
       });
     }
 
@@ -66,6 +64,14 @@ const Login = () => {
       signInWithEmailAndPassword(auth, email.current.value, password.current.value)
       .then((userCredential) => {
         const user = userCredential.user;
+        dispatch(
+          addUser({
+            uid: user.uid,
+            email: user.email,
+            displayName: user.displayName,
+            photoURL: user.photoURL,
+          })
+        )
         navigate("/home")
       })
       .catch((error) => {
